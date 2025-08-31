@@ -2,6 +2,7 @@ import bencode.torrent.TorrentMeta;
 import bencode.torrent.TorrentParser;
 
 import java.io.IOException;
+import java.util.List;
 
 public class BitTorrentClient {
   public static void main(String[] args) {
@@ -17,7 +18,7 @@ public class BitTorrentClient {
     try {
       clientPort = Integer.parseInt(args[2]);
     } catch (NumberFormatException e) {
-      System.err.println("Error: <listen-port> must be an integer>");
+      System.err.println("Error: <port> must be an integer>");
       System.exit(1);
       return;
     }
@@ -27,6 +28,15 @@ public class BitTorrentClient {
       meta = TorrentParser.parseTorrent(torrentFilePath);
     } catch (IOException e) {
       System.err.println("Failed to parse torrent file: " + e.getMessage());
+      System.exit(1);
+      return;
+    }
+
+    List<Peer> peers;
+    try {
+      peers = PeerConfigParser.getPeers(args[1]);
+    } catch (IOException e) {
+      System.err.println("Failed to parse peers: " + e.getMessage());
       System.exit(1);
       return;
     }
