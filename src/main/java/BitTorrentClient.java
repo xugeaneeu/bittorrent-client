@@ -7,18 +7,18 @@ import java.util.List;
 public class BitTorrentClient {
   public static void main(String[] args) {
     if (args.length != 3) {
-      System.err.println("Usage: java -jar bittorrent-client.jar <torrent-file> <peers-conf> <port>");
+      System.err.println("Usage: java -jar bittorrent-client.jar <torrent-file> <peers-conf> <listen-port>");
       System.exit(1);
       return;
     }
 
     String torrentFilePath = args[0];
     String peersConfPath = args[1];
-    int clientPort;
+    int listenPort;
     try {
-      clientPort = Integer.parseInt(args[2]);
+      listenPort = Integer.parseInt(args[2]);
     } catch (NumberFormatException e) {
-      System.err.println("Error: <port> must be an integer>");
+      System.err.println("Error: <listen-port> must be an integer>");
       System.exit(1);
       return;
     }
@@ -40,7 +40,5 @@ public class BitTorrentClient {
       System.exit(1);
       return;
     }
-
-
   }
 }
