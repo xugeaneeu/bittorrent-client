@@ -1,44 +1,35 @@
 import bencode.torrent.TorrentMeta;
 import bencode.torrent.TorrentParser;
+import config.CmdParser;
+import config.PeerConfigParser;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 public class BitTorrentClient {
   public static void main(String[] args) {
-    if (args.length != 3) {
-      System.err.println("Usage: java -jar bittorrent-client.jar <torrent-file> <peers-conf> <listen-port>");
-      System.exit(1);
-      return;
-    }
-
-    String torrentFilePath = args[0];
-    String peersConfPath = args[1];
-    int listenPort;
-    try {
-      listenPort = Integer.parseInt(args[2]);
-    } catch (NumberFormatException e) {
-      System.err.println("Error: <listen-port> must be an integer>");
-      System.exit(1);
-      return;
-    }
+    CmdParser paths = CmdParser.parse(args);
 
     TorrentMeta meta;
     try {
-      meta = TorrentParser.parseTorrent(torrentFilePath);
+      meta = TorrentParser.parseTorrent(paths.getTorrentFilePath().toString());
     } catch (IOException e) {
       System.err.println("Failed to parse torrent file: " + e.getMessage());
       System.exit(1);
       return;
     }
 
-    List<Peer> peers;
+    List<InetSocketAddress> peers;
     try {
-      peers = PeerConfigParser.getPeers(args[1]);
+      peers = PeerConfigParser.getPeers(paths.getPeersConfigPath());
     } catch (IOException e) {
       System.err.println("Failed to parse peers: " + e.getMessage());
       System.exit(1);
-      return;
     }
+
+//    System.out.println(paths);
+//    System.out.println(meta.toString());
+//    System.out.println(peers);
   }
 }
