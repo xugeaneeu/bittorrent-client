@@ -2,8 +2,11 @@ import bencode.torrent.TorrentMeta;
 import bencode.torrent.TorrentParser;
 import config.CmdParser;
 import config.PeerConfigParser;
+import dispatcher.DownloadScheduler;
+import dispatcher.PeerManager;
+import network.NetworkReactor;
+import storage.FileManager;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -11,25 +14,31 @@ public class BitTorrentClient {
   public static void main(String[] args) {
     CmdParser paths = CmdParser.parse(args);
 
-    TorrentMeta meta;
     try {
-      meta = TorrentParser.parseTorrent(paths.getTorrentFilePath().toString());
-    } catch (IOException e) {
-      System.err.println("Failed to parse torrent file: " + e.getMessage());
-      System.exit(1);
-      return;
-    }
+      TorrentMeta meta = TorrentParser.parseTorrent(paths.getTorrentFilePath().toString());
 
-    List<InetSocketAddress> peers;
-    try {
-      peers = PeerConfigParser.getPeers(paths.getPeersConfigPath());
-    } catch (IOException e) {
-      System.err.println("Failed to parse peers: " + e.getMessage());
+      FileManager fm = new FileManager(meta);
+      NetworkReactor reactor = new NetworkReactor();
+
+      PeerManager peerManager = new PeerManager(reactor, fm.getLocalBitmap());
+      DownloadScheduler scheduler = new DownloadScheduler(meta, fm, reactor, peerManager);
+
+      peerManager.setScheduler(scheduler);
+
+      reactor.setListener(peerManager);
+      reactor.registerServer(paths.getListenPort());
+
+      List<InetSocketAddress> peers = PeerConfigParser.getPeers(paths.getPeersConfigPath());
+      for (InetSocketAddress peer : peers) {
+        reactor.registerClient(peer);
+      }
+
+      Thread reactorThread = new Thread(reactor, "reactor-thread");
+      reactorThread.start();
+
+    } catch (Exception e) {
+      System.err.println("Fatal error: " + e.getMessage());
       System.exit(1);
     }
-
-//    System.out.println(paths);
-//    System.out.println(meta.toString());
-//    System.out.println(peers);
   }
 }

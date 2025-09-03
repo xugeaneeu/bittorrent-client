@@ -1,13 +1,11 @@
 package config;
 
 import lombok.Getter;
-import lombok.ToString;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Getter
-@ToString
 public class CmdParser {
   private final Path torrentFilePath;
   private final Path peersConfigPath;
