@@ -1,7 +1,5 @@
 package protocol.messages;
 
-import protocol.MessageType;
-
 import java.nio.ByteBuffer;
 
 public class ChokeMessage implements Message {

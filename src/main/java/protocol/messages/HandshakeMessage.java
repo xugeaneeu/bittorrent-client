@@ -2,7 +2,6 @@ package protocol.messages;
 
 import lombok.Getter;
 import lombok.ToString;
-import protocol.MessageType;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
