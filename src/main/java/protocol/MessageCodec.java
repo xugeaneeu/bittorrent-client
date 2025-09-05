@@ -3,7 +3,6 @@ package protocol;
 import protocol.messages.HandshakeMessage;
 import protocol.messages.*;
 import protocol.messages.MessageType;
-import storage.BitmapUtils;
 
 import java.nio.ByteBuffer;
 
@@ -30,7 +29,7 @@ public class MessageCodec {
     return new HandshakeMessage(infoHash, peerId);
   }
 
-  public static Message decodeMessage(ByteBuffer dataBuf, int pieceCount) {
+  public static Message decodeMessage(ByteBuffer dataBuf) {
     dataBuf.rewind();
     byte id = dataBuf.get();
     MessageType type = MessageType.fromId(id & 0xFF);
@@ -48,7 +47,7 @@ public class MessageCodec {
       case BITFIELD: {
         byte[] bits = new byte[dataBuf.remaining()];
         dataBuf.get(bits);
-        return new BitfieldMessage(BitmapUtils.deserialize(bits, pieceCount));
+        return new BitfieldMessage(bits);
       }
       case REQUEST: {
         int idx   = dataBuf.getInt();

@@ -2,16 +2,15 @@ package protocol.messages;
 
 import lombok.Getter;
 import lombok.ToString;
-import storage.BitmapUtils;
 
 import java.nio.ByteBuffer;
 
 @Getter
 @ToString
 public class BitfieldMessage implements Message {
-  private final boolean[] bitmap;
+  private final byte[] bitmap;
 
-  public BitfieldMessage(final boolean[] bitmap) {
+  public BitfieldMessage(final byte[] bitmap) {
     this.bitmap = bitmap;
   }
 
@@ -22,12 +21,11 @@ public class BitfieldMessage implements Message {
 
   @Override
   public ByteBuffer toBytes() {
-    byte[] bits = BitmapUtils.serialize(bitmap);
-    int payload = 1 + bits.length;
+    int payload = 1 + bitmap.length;
     ByteBuffer buffer = ByteBuffer.allocate(4 + payload);
     buffer.putInt(payload)
             .put((byte) getType().getId())
-            .put(bits)
+            .put(bitmap)
             .flip();
     return buffer;
   }
