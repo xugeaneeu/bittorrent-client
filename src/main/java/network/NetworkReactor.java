@@ -44,9 +44,9 @@ public class NetworkReactor implements Runnable {
           if (key.isReadable()) {
             PeerChannel peer = (PeerChannel) key.attachment();
             peer.handleRead();
-            if (peer.hasPendingWrites()) {
-              key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-            }
+//            if (peer.hasPendingWrites()) {
+//              key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+//            }
           }
           if (key.isWritable()) {
             PeerChannel peer = (PeerChannel) key.attachment();

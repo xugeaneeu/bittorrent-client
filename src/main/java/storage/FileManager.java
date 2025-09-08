@@ -2,6 +2,7 @@ package storage;
 
 import bencode.torrent.TorrentMeta;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.*;
 
 import java.io.*;
@@ -22,7 +23,7 @@ public class FileManager implements AutoCloseable {
   private final boolean[] localBitmap;
   private final FileChannel channel;
 
-  public FileManager(TorrentMeta meta) throws IOException, NoSuchAlgorithmException {
+  public FileManager(TorrentMeta meta) throws IOException, NoSuchAlgorithmException, DecoderException {
     this.pieceLength = meta.getPieceLength().intValue();
     this.pieceCount  = meta.getPieces().size();
     this.fileLength  = meta.getFileLength();
@@ -74,7 +75,7 @@ public class FileManager implements AutoCloseable {
   }
 
   private boolean[] buildLocalBitmap(TorrentMeta meta)
-          throws IOException, NoSuchAlgorithmException {
+          throws IOException, NoSuchAlgorithmException, DecoderException {
     boolean[] bitmap = new boolean[pieceCount];
     for (int i = 0; i < pieceCount; i++) {
       byte[] data = readPiece(i);
@@ -96,7 +97,7 @@ public class FileManager implements AutoCloseable {
   }
 
   private boolean checkHash(int index, byte[] data, TorrentMeta meta)
-          throws NoSuchAlgorithmException {
+          throws NoSuchAlgorithmException, DecoderException {
     MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
     byte[] digest = sha1.digest(data);
 

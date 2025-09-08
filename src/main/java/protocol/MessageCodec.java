@@ -32,7 +32,7 @@ public class MessageCodec {
   public static Message decodeMessage(ByteBuffer dataBuf) {
     dataBuf.rewind();
     byte id = dataBuf.get();
-    MessageType type = MessageType.fromId(id & 0xFF);
+    MessageType type = MessageType.fromId(Byte.toUnsignedInt(id));
 
     switch (type) {
       case KEEP_ALIVE:    return new KeepAliveMessage();

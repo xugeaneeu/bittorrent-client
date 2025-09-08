@@ -9,6 +9,8 @@ import storage.FileManager;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class BitTorrentClient {
   public static void main(String[] args) {
@@ -20,10 +22,11 @@ public class BitTorrentClient {
       FileManager fm = new FileManager(meta);
       NetworkReactor reactor = new NetworkReactor();
 
-      PeerManager peerManager = new PeerManager(reactor, fm.getLocalBitmap());
+      ExecutorService executor = Executors.newCachedThreadPool();
+      PeerManager peerManager = new PeerManager(reactor, meta, fm, executor);
       DownloadScheduler scheduler = new DownloadScheduler(meta, fm, reactor, peerManager);
 
-      peerManager.setScheduler(scheduler);
+      peerManager.setDownloadScheduler(scheduler);
 
       reactor.setListener(peerManager);
       reactor.registerServer(paths.getListenPort());
