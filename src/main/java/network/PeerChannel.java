@@ -20,6 +20,7 @@ public class PeerChannel {
 
   private final SocketChannel channel;
   private final ProtocolListener listener;
+  private final boolean initiator;
   private State state = State.HANDSHAKE;
 
   private final Queue<ByteBuffer> outbound = new ArrayDeque<>();
@@ -30,9 +31,11 @@ public class PeerChannel {
   private final ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
   private ByteBuffer dataBuffer;
 
-  public PeerChannel(SocketChannel channel, ProtocolListener listener) throws IOException {
+  public PeerChannel(SocketChannel channel, ProtocolListener listener, boolean initiator)
+          throws IOException {
     this.channel = channel;
     this.listener = listener;
+    this.initiator = initiator;
     channel.configureBlocking(false);
   }
 

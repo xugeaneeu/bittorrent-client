@@ -14,11 +14,13 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.List;
 
 public class FileManager implements AutoCloseable {
   private final Path filePath;
   private final int pieceLength;
   private final int pieceCount;
+  private final byte[][] pieceHashes;
   private final long fileLength;
   private final boolean[] localBitmap;
   private final FileChannel channel;
@@ -28,6 +30,7 @@ public class FileManager implements AutoCloseable {
     this.pieceCount  = meta.getPieces().size();
     this.fileLength  = meta.getFileLength();
     this.filePath    = Path.of(meta.getName());
+    this.pieceHashes = decodeAllPieceHashes(meta.getPieces());
 
     prepareFile();
 
@@ -40,6 +43,15 @@ public class FileManager implements AutoCloseable {
     channel.truncate(fileLength);
 
     this.localBitmap = buildLocalBitmap(meta);
+  }
+
+  private byte[][] decodeAllPieceHashes(List<String> pieces) throws DecoderException {
+    int count = pieces.size();
+    byte[][] hashes = new byte[count][];
+    for (int i = 0; i < count; i++) {
+      hashes[i] = Hex.decodeHex(pieces.get(i).toCharArray());
+    }
+    return hashes;
   }
 
   public boolean[] getLocalBitmap() {
@@ -74,12 +86,11 @@ public class FileManager implements AutoCloseable {
     }
   }
 
-  private boolean[] buildLocalBitmap(TorrentMeta meta)
-          throws IOException, NoSuchAlgorithmException, DecoderException {
-    boolean[] bitmap = new boolean[pieceCount];
-    for (int i = 0; i < pieceCount; i++) {
+  private boolean[] buildLocalBitmap(TorrentMeta meta) throws IOException, NoSuchAlgorithmException {
+    boolean[] bitmap = new boolean[pieceHashes.length];
+    for (int i = 0; i < pieceHashes.length; i++) {
       byte[] data = readPiece(i);
-      bitmap[i] = checkHash(i, data, meta);
+      bitmap[i] = checkHash(i, data);
     }
     return bitmap;
   }
@@ -96,14 +107,10 @@ public class FileManager implements AutoCloseable {
     }
   }
 
-  private boolean checkHash(int index, byte[] data, TorrentMeta meta)
-          throws NoSuchAlgorithmException, DecoderException {
+  public boolean checkHash(int index, byte[] data) throws NoSuchAlgorithmException {
     MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
     byte[] digest = sha1.digest(data);
-
-    String expectedHex = meta.getPieces().get(index);
-    byte[] expected = Hex.decodeHex(expectedHex.toCharArray());
-    return Arrays.equals(digest, expected);
+    return Arrays.equals(digest, pieceHashes[index]);
   }
 
   @Override

@@ -26,7 +26,7 @@ public class BitTorrentClient {
       PeerManager peerManager = new PeerManager(reactor, meta, fm, executor);
       DownloadScheduler scheduler = new DownloadScheduler(meta, fm, reactor, peerManager);
 
-      peerManager.setDownloadScheduler(scheduler);
+      peerManager.setScheduler(scheduler);
 
       reactor.setListener(peerManager);
       reactor.registerServer(paths.getListenPort());

@@ -8,10 +8,10 @@ import java.nio.ByteBuffer;
 @Getter
 @ToString
 public class BitfieldMessage implements Message {
-  private final byte[] bitmap;
+  private final byte[] raw;
 
-  public BitfieldMessage(final byte[] bitmap) {
-    this.bitmap = bitmap;
+  public BitfieldMessage(final byte[] raw) {
+    this.raw = raw;
   }
 
   @Override
@@ -21,11 +21,11 @@ public class BitfieldMessage implements Message {
 
   @Override
   public ByteBuffer toBytes() {
-    int payload = 1 + bitmap.length;
+    int payload = 1 + raw.length;
     ByteBuffer buffer = ByteBuffer.allocate(4 + payload);
     buffer.putInt(payload)
             .put((byte) getType().getId())
-            .put(bitmap)
+            .put(raw)
             .flip();
     return buffer;
   }

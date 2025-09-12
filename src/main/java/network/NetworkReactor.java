@@ -82,7 +82,7 @@ public class NetworkReactor implements Runnable {
 
   public void registerClient(InetSocketAddress addr) throws IOException {
     SocketChannel sc = SocketChannel.open();
-    PeerChannel peer = new PeerChannel(sc, listener);
+    PeerChannel peer = new PeerChannel(sc, listener, true);
     sc.connect(addr);
     sc.register(demultiplexer, SelectionKey.OP_CONNECT, peer);
   }
@@ -96,7 +96,7 @@ public class NetworkReactor implements Runnable {
     ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
     SocketChannel connection = ssc.accept();
     if (connection == null) {return;}
-    PeerChannel peer = new PeerChannel(connection, listener);
+    PeerChannel peer = new PeerChannel(connection, listener, false);
     connection.register(demultiplexer, SelectionKey.OP_READ, peer);
   }
 
