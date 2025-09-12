@@ -19,7 +19,6 @@ import java.util.List;
 public class FileManager implements AutoCloseable {
   private final Path filePath;
   private final int pieceLength;
-  private final int pieceCount;
   private final byte[][] pieceHashes;
   private final long fileLength;
   private final boolean[] localBitmap;
@@ -27,7 +26,6 @@ public class FileManager implements AutoCloseable {
 
   public FileManager(TorrentMeta meta) throws IOException, NoSuchAlgorithmException, DecoderException {
     this.pieceLength = meta.getPieceLength().intValue();
-    this.pieceCount  = meta.getPieces().size();
     this.fileLength  = meta.getFileLength();
     this.filePath    = Path.of(meta.getName());
     this.pieceHashes = decodeAllPieceHashes(meta.getPieces());
@@ -42,7 +40,7 @@ public class FileManager implements AutoCloseable {
     );
     channel.truncate(fileLength);
 
-    this.localBitmap = buildLocalBitmap(meta);
+    this.localBitmap = buildLocalBitmap();
   }
 
   private byte[][] decodeAllPieceHashes(List<String> pieces) throws DecoderException {
@@ -86,19 +84,19 @@ public class FileManager implements AutoCloseable {
     }
   }
 
-  private boolean[] buildLocalBitmap(TorrentMeta meta) throws IOException, NoSuchAlgorithmException {
+  public int pieceSize(int index) {
+    long offset = (long) pieceLength * index;
+    long remaining = fileLength - offset;
+    return (int) Math.min(remaining, pieceLength);
+  }
+
+  private boolean[] buildLocalBitmap() throws IOException, NoSuchAlgorithmException {
     boolean[] bitmap = new boolean[pieceHashes.length];
     for (int i = 0; i < pieceHashes.length; i++) {
       byte[] data = readPiece(i);
       bitmap[i] = checkHash(i, data);
     }
     return bitmap;
-  }
-
-  private int pieceSize(int index) {
-    long offset = (long) pieceLength * index;
-    long remaining = fileLength - offset;
-    return (int) Math.min(remaining, pieceLength);
   }
 
   private void prepareFile() throws IOException {

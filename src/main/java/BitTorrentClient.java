@@ -24,7 +24,7 @@ public class BitTorrentClient {
 
       ExecutorService executor = Executors.newCachedThreadPool();
       PeerManager peerManager = new PeerManager(reactor, meta, fm, executor);
-      DownloadScheduler scheduler = new DownloadScheduler(meta, fm, reactor, peerManager);
+      DownloadScheduler scheduler = new DownloadScheduler(meta, reactor, peerManager);
 
       peerManager.setScheduler(scheduler);
 

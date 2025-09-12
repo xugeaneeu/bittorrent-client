@@ -1,6 +1,7 @@
 package dispatcher;
 
 import bencode.torrent.TorrentMeta;
+import lombok.Getter;
 import lombok.Setter;
 import network.NetworkReactor;
 import network.PeerChannel;
@@ -13,6 +14,8 @@ import storage.FileManager;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -21,12 +24,15 @@ public class PeerManager implements ProtocolListener {
   private final NetworkReactor reactor;
   private final byte[] infoHash;
   private final byte[] myPeerId;
+  @Getter
   private final boolean[] localBitmap;
+  @Getter
   private final FileManager fileManager;
   @Setter
   private DownloadScheduler scheduler;
   private final ExecutorService pool;
 
+  @Getter
   private final ConcurrentHashMap<PeerChannel, boolean[]> remoteBitmaps = new ConcurrentHashMap<>();
 
   public PeerManager(NetworkReactor reactor,
@@ -60,6 +66,10 @@ public class PeerManager implements ProtocolListener {
         default -> { }
       }
     });
+  }
+
+  public Set<PeerChannel> getAllPeerChannels() {
+    return Collections.unmodifiableSet(remoteBitmaps.keySet());
   }
 
   private void handleHandshake(PeerChannel peer, HandshakeMessage msg) {
