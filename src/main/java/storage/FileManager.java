@@ -34,7 +34,6 @@ public class FileManager implements AutoCloseable {
 
     this.channel = FileChannel.open(
             filePath,
-            StandardOpenOption.CREATE,
             StandardOpenOption.READ,
             StandardOpenOption.WRITE
     );
@@ -101,7 +100,9 @@ public class FileManager implements AutoCloseable {
 
   private void prepareFile() throws IOException {
     if (!Files.exists(filePath)) {
-      Files.createFile(filePath);
+      try (RandomAccessFile raf = new RandomAccessFile(filePath.toFile(), "rw")) {
+        raf.setLength(fileLength);
+      }
     }
   }
 

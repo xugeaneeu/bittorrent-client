@@ -5,6 +5,7 @@ import lombok.Setter;
 import protocol.messages.Message;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -35,25 +36,30 @@ public class NetworkReactor implements Runnable {
           SelectionKey key = iterator.next();
           iterator.remove();
           if (!key.isValid()) {continue;}
-          if (key.isAcceptable()) {
-            doAccept(key);
-          }
-          if (key.isConnectable()) {
-            doConnect(key);
-          }
-          if (key.isReadable()) {
-            PeerChannel peer = (PeerChannel) key.attachment();
-            peer.handleRead();
-//            if (peer.hasPendingWrites()) {
-//              key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-//            }
-          }
-          if (key.isWritable()) {
-            PeerChannel peer = (PeerChannel) key.attachment();
-            peer.handleWrite();
-            if (!peer.hasPendingWrites()) {
-              key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+
+          try {
+            if (key.isAcceptable()) {
+              doAccept(key);
             }
+            if (key.isConnectable()) {
+              doConnect(key);
+            }
+            if (key.isReadable()) {
+              PeerChannel peer = (PeerChannel) key.attachment();
+              peer.handleRead();
+  //            if (peer.hasPendingWrites()) {
+  //              key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+  //            }
+            }
+            if (key.isWritable()) {
+              PeerChannel peer = (PeerChannel) key.attachment();
+              peer.handleWrite();
+              if (!peer.hasPendingWrites()) {
+                key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+              }
+            }
+          } catch (ConnectException e) {
+            cancelKey(key);
           }
         }
       }
