@@ -58,7 +58,7 @@ public class NetworkReactor implements Runnable {
                 key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
               }
             }
-          } catch (ConnectException e) {
+          } catch (IOException e) {
             cancelKey(key);
           }
         }
