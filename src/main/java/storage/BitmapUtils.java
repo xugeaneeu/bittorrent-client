@@ -4,7 +4,7 @@ public class BitmapUtils {
   public static byte[] serialize(boolean[] bitmap) {
     int byteLen = (bitmap.length + 7) / 8;
     byte[] out = new byte[byteLen];
-    for (int i = 0; i < byteLen; i++) {
+    for (int i = 0; i < bitmap.length; i++) {
       if (bitmap[i]) {
         int b = i/8;
         int bit = 7 - (i%8);

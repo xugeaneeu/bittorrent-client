@@ -77,7 +77,7 @@ public class PeerChannel {
       if (n <= 0) {return;}
       if (!hsLengthBuffer.hasRemaining()) {
         int pstrlen = Byte.toUnsignedInt(hsLengthBuffer.get(0));
-        int total = 1 + pstrlen + 8 + 20 + 20;
+        int total = pstrlen + 8 + 20 + 20;
         hsBuffer = ByteBuffer.allocate(total);
       } else {return;}
     }

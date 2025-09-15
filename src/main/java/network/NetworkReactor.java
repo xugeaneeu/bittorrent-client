@@ -5,7 +5,6 @@ import lombok.Setter;
 import protocol.messages.Message;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -47,9 +46,6 @@ public class NetworkReactor implements Runnable {
             if (key.isReadable()) {
               PeerChannel peer = (PeerChannel) key.attachment();
               peer.handleRead();
-  //            if (peer.hasPendingWrites()) {
-  //              key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-  //            }
             }
             if (key.isWritable()) {
               PeerChannel peer = (PeerChannel) key.attachment();

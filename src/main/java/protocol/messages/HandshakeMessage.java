@@ -36,6 +36,8 @@ public class HandshakeMessage implements Message {
     buffer.put((byte) pstrBytes.length)
             .put(pstrBytes)
             .put(new byte[RESERVED_TO_EXTENSIONS])
+            .put(infoHash)
+            .put(peerId)
             .flip();
     return buffer;
   }

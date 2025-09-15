@@ -24,12 +24,9 @@ public class PeerManager implements ProtocolListener {
   private final NetworkReactor reactor;
   private final byte[] infoHash;
   private final byte[] myPeerId;
-  @Getter
-  private final boolean[] localBitmap;
-  @Getter
-  private final FileManager fileManager;
-  @Setter
-  private DownloadScheduler scheduler;
+  @Getter private final boolean[] localBitmap;
+  @Getter private final FileManager fileManager;
+  @Setter private DownloadScheduler scheduler;
   private final ExecutorService pool;
 
   @Getter
