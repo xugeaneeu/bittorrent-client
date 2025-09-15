@@ -1,21 +1,27 @@
 package protocol;
 
+import lombok.extern.slf4j.Slf4j;
 import protocol.messages.HandshakeMessage;
 import protocol.messages.*;
 import protocol.messages.MessageType;
 
 import java.nio.ByteBuffer;
 
+@Slf4j
 public class MessageCodec {
 
   public static ByteBuffer encode(Message msg) {
-    return msg.toBytes();
+    ByteBuffer buf = msg.toBytes();
+    log.debug("encode: type={} length={}", msg.getType(), buf.limit());
+    return buf;
   }
 
   public static HandshakeMessage decodeHandshake(ByteBuffer pstrlenBuf, ByteBuffer dataBuf) {
+    log.trace("decodeHandshake: reading pstrlen");
     pstrlenBuf.rewind();
     int pstrlen = Byte.toUnsignedInt(pstrlenBuf.get());
     dataBuf.rewind();
+    log.trace("decodeHandshake: pstrlen={}", pstrlen);
     byte[] protocol = new byte[pstrlen];
     dataBuf.get(protocol);
 
@@ -26,13 +32,16 @@ public class MessageCodec {
     byte[] peerId = new byte[20];
     dataBuf.get(peerId);
 
-    return new HandshakeMessage(infoHash, peerId);
+    HandshakeMessage hs = new HandshakeMessage(infoHash, peerId);
+    log.debug("decodeHandshake: {}", hs);
+    return hs;
   }
 
   public static Message decodeMessage(ByteBuffer dataBuf) {
     dataBuf.rewind();
     byte id = dataBuf.get();
     MessageType type = MessageType.fromId(Byte.toUnsignedInt(id));
+    log.trace("decodeMessage: type={}", type);
 
     switch (type) {
       case KEEP_ALIVE:    return new KeepAliveMessage();

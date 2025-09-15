@@ -2,6 +2,7 @@ package storage;
 
 import bencode.torrent.TorrentMeta;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.*;
 
@@ -16,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 public class FileManager implements AutoCloseable {
   private final Path filePath;
   private final int pieceLength;
@@ -30,6 +32,7 @@ public class FileManager implements AutoCloseable {
     this.filePath    = Path.of(meta.getName());
     this.pieceHashes = decodeAllPieceHashes(meta.getPieces());
 
+    log.info("Preparing file {} (length={} bytes)", filePath, fileLength);
     prepareFile();
 
     this.channel = FileChannel.open(
@@ -37,8 +40,11 @@ public class FileManager implements AutoCloseable {
             StandardOpenOption.READ,
             StandardOpenOption.WRITE
     );
+    log.info("Opened FileChannel on {}, actual size={}", filePath, channel.size());
     channel.truncate(fileLength);
+    log.debug("Truncated file to {} bytes", fileLength);
 
+    log.info("Building local bitmap for {} pieces", pieceHashes.length);
     this.localBitmap = buildLocalBitmap();
   }
 
@@ -58,12 +64,14 @@ public class FileManager implements AutoCloseable {
   public byte[] readPiece(int index) throws IOException {
     long offset = (long) index * pieceLength;
     int length = pieceSize(index);
+    log.debug("Reading piece {}: offset={}, length={}", index, offset, length);
     ByteBuffer buffer = ByteBuffer.allocate(length);
 
     int read = 0;
     while (read < length) {
       int n = channel.read(buffer, offset + read);
       if (n < 0) {
+        log.error("Unexpected EOF while reading piece {}", index);
         throw new EOFException("Unexpected EOF while reading piece " + index);
       }
       read += n;
@@ -76,6 +84,7 @@ public class FileManager implements AutoCloseable {
 
   public void writePiece(int index, byte[] data) throws IOException {
     long offset = (long) index * pieceLength;
+    log.debug("Writing piece {}: offset={}, bytes={}", index, offset, data.length);
     ByteBuffer buffer = ByteBuffer.wrap(data);
 
     while (buffer.hasRemaining()) {
@@ -100,6 +109,7 @@ public class FileManager implements AutoCloseable {
 
   private void prepareFile() throws IOException {
     if (!Files.exists(filePath)) {
+      log.info("File {} does not exist, creating and setting length", filePath);
       try (RandomAccessFile raf = new RandomAccessFile(filePath.toFile(), "rw")) {
         raf.setLength(fileLength);
       }
@@ -114,6 +124,7 @@ public class FileManager implements AutoCloseable {
 
   @Override
   public void close() throws IOException {
+    log.info("Closing FileChannel for {}", filePath);
     channel.close();
   }
 }

@@ -4,6 +4,7 @@ import config.CmdParser;
 import config.PeerConfigParser;
 import dispatcher.DownloadScheduler;
 import dispatcher.PeerManager;
+import lombok.extern.slf4j.Slf4j;
 import network.NetworkReactor;
 import storage.FileManager;
 
@@ -12,12 +13,14 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 public class BitTorrentClient {
   public static void main(String[] args) {
     CmdParser paths = CmdParser.parse(args);
 
     try {
       TorrentMeta meta = TorrentParser.parseTorrent(paths.getTorrentFilePath().toString());
+      log.info("Parsed torrent metadata: {}", meta);
 
       FileManager fm = new FileManager(meta);
       NetworkReactor reactor = new NetworkReactor();
@@ -30,17 +33,20 @@ public class BitTorrentClient {
 
       reactor.setListener(peerManager);
       reactor.registerServer(paths.getListenPort());
+      log.info("Listening on port {}", paths.getListenPort());
 
       List<InetSocketAddress> peers = PeerConfigParser.getPeers(paths.getPeersConfigPath());
       for (InetSocketAddress peer : peers) {
         reactor.registerClient(peer);
+        log.info("Connecting to peer {}", peer);
       }
 
       Thread reactorThread = new Thread(reactor, "reactor-thread");
       reactorThread.start();
+      log.info("Reactor thread started");
 
     } catch (Exception e) {
-      System.err.println("Fatal error: " + e.getMessage());
+      log.error("Fatal error in main(): {}", e.toString(), e);
       System.exit(1);
     }
   }
