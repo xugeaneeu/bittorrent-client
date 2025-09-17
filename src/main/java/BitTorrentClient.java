@@ -10,8 +10,7 @@ import storage.FileManager;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Slf4j
 public class BitTorrentClient {
@@ -25,7 +24,19 @@ public class BitTorrentClient {
       FileManager fm = new FileManager(meta);
       NetworkReactor reactor = new NetworkReactor();
 
-      ExecutorService executor = Executors.newCachedThreadPool();
+      int cores = Runtime.getRuntime().availableProcessors();
+      BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(100);
+
+      ExecutorService executor = new ThreadPoolExecutor(
+              cores,
+              cores,
+              60, TimeUnit.SECONDS,
+              queue,
+              new ThreadPoolExecutor.CallerRunsPolicy()
+      );
+
+
+
       PeerManager peerManager = new PeerManager(reactor, meta, fm, executor);
       DownloadScheduler scheduler = new DownloadScheduler(meta, reactor, peerManager);
 
